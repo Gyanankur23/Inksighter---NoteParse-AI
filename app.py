@@ -1,17 +1,13 @@
-# app.py
-
 import streamlit as st
 import pandas as pd
 import re
 from io import BytesIO
 from datetime import datetime
-from st_aggrid import AgGrid, GridOptionsBuilder
 import plotly.express as px
 
 # --- Helper Functions ---
 
 def is_date_line(line):
-    # Simple date pattern match
     return bool(re.search(r'\b(\d{1,2}(st|nd|rd|th)?\s+\w+|\d{1,2}/\d{1,2}/\d{2,4}|\w+\s+\d{1,2})\b', line.strip(), re.IGNORECASE))
 
 def extract_item_amount(line):
@@ -83,20 +79,16 @@ if st.button("🔍 Parse Notes"):
         st.success("✅ Notes parsed successfully!")
 
         st.subheader("📝 Editable Table")
-        gb = GridOptionsBuilder.from_dataframe(df)
-        gb.configure_default_column(editable=True)
-        grid_options = gb.build()
-        grid_response = AgGrid(df, gridOptions=grid_options, update_mode="MODEL_CHANGED", fit_columns_on_grid_load=True)
-        edited_df = grid_response["data"]
+        edited_df = st.data_editor(df, num_rows="dynamic", use_container_width=True)
 
         st.download_button(
             label="📥 Download as Excel",
-            data=convert_df_to_excel(pd.DataFrame(edited_df)),
+            data=convert_df_to_excel(edited_df),
             file_name=f"NoteParse_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 
-        show_dashboard(pd.DataFrame(edited_df))
+        show_dashboard(edited_df)
     else:
         st.warning("Please paste some notes to parse.")
 
